@@ -355,10 +355,12 @@ axionbot.forEach((line, i) => {
 });
 
         Global.isLogoPrinted = true;
-    } // Chiude il blocco relativo alla stampa del logo o all'apertura connessione
+// Rimuovi eventuali graffe extra qui se l'if sotto deve stare nello stesso blocco
 
-    if (connection === 'close') {
-        const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
+if (connection === 'close') {
+    const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
+    // ... logica di riconnessione
+}
         
         if (reason === DisconnectReason.badSession) {
             if (!global.connectionMessagesPrinted.badSession) {
