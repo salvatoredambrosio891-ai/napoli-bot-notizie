@@ -6,7 +6,6 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { platform } from 'process';
 import fs, { readdirSync, statSync, unlinkSync, existsSync, mkdirSync, rmSync, watch } from 'fs';
 import yargs from 'yargs';
-import { spawn } from 'child_process';
 import lodash from 'lodash';
 import chalk from 'chalk';
 import { format } from 'util';
@@ -15,177 +14,135 @@ import { makeWASocket, protoType, serialize } from './lib/simple.js';
 import { Low, JSONFile } from 'lowdb';
 import NodeCache from 'node-cache';
 
-const DisconnectReason = {
-    connectionClosed: 428,
-    connectionLost: 408,
-    connectionReplaced: 440,
-    timedOut: 408,
-    loggedOut: 401,
-    badSession: 500,
-    restartRequired: 515,
-    multideviceMismatch: 411,
-    forbidden: 403,
-    unavailableService: 503
-};
-
-const { useMultiFileAuthState, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, makeInMemoryStore } = await import('@realvare/baileys');
-const { chain } = lodash;
-const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
-
+// Inizializzazione prototipi
 protoType();
 serialize();
 
+const { useMultiFileAuthState, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, makeInMemoryStore } = await import('@realvare/baileys');
+const { chain } = lodash;
+
+// Setup variabili globali e percorsi
+global.authFile = 'session';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 global.isLogoPrinted = false;
 global.qrGenerated = false;
-global.authFile = 'session';
-let methodCodeQR = process.argv.includes("qr");
-let methodCode = process.argv.includes("code");
-let phoneNumber = global.botNumberCode;
 
-global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') {
-    return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString();
-};
-
-global.__dirname = function dirname(pathURL) {
-    return path.dirname(global.__filename(pathURL, true));
-};
-
-global.__require = function require(dir = import.meta.url) {
-    return createRequire(dir);
-};
-
-const __dirname = global.__dirname(import.meta.url);
-global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
+// Database setup
 global.db = new Low(new JSONFile('database.json'));
-
 global.loadDatabase = async function loadDatabase() {
     if (global.db.READ) return;
+    global.db.READ = true;
     await global.db.read().catch(console.error);
+    global.db.READ = null;
     global.db.data = { users: {}, chats: {}, settings: {}, ...(global.db.data || {}) };
     global.db.chain = chain(global.db.data);
 };
-loadDatabase();
+await global.loadDatabase();
 
+// Auth state
 const { state, saveCreds } = await useMultiFileAuthState(global.authFile);
-const msgRetryCounterCache = new NodeCache();
 
 const question = (t) => {
     process.stdout.write(t);
     return new Promise((resolve) => {
-        process.stdin.once('data', (data) => {
-            resolve(data.toString().trim());
-        });
+        process.stdin.once('data', (data) => resolve(data.toString().trim()));
     });
 };
 
+// Selezione modalità all'avvio
 let opzione;
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${global.authFile}/creds.json`)) {
+if (!fs.existsSync(`./${global.authFile}/creds.json`)) {
     console.clear();
-    const primary = chalk.hex('#00F5FF');
-    console.log(primary(`
+    console.log(chalk.cyan.bold(`
 ╔════════════════════════════════════════════════╗
-      𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 — PUBLIC DEPLOYMENT
-   ──────────────────────────────────────────
-
-   ⌬ [01] AUTENTICAZIONE TRAMITE QR CODE
-   ⌬ [02] AUTENTICAZIONE TRAMITE PAIRING CODE
-
-   ──────────────────────────────────────────
+      𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 — SETUP CONNESSIONE
 ╚════════════════════════════════════════════════╝`));
-    opzione = await question(chalk.hex('#39FF14').bold('\n ❯ SELEZIONA MODALITÀ (1 o 2): '));
+    console.log(chalk.white(`  [1] QR CODE\n  [2] PAIRING CODE (Numero di telefono)`));
+    opzione = await question(chalk.green.bold('\n  ❯ Scelta: '));
 }
 
 const logger = pino({ level: 'silent' });
-global.store = makeInMemoryStore({ logger });
-global.jidCache = new NodeCache({ stdTTL: 600, useClones: false });
 
-const makeDecodeJid = (cache) => (jid) => {
-    if (!jid) return jid;
-    const cached = cache.get(jid);
-    if (cached) return cached;
-    let decoded = /:\d+@/gi.test(jid) ? jidNormalizedUser(jid) : jid;
-    cache.set(jid, decoded);
-    return decoded;
-};
-
+// Configurazione socket
 const connectionOptions = {
     logger,
-    browser: Browsers.ubuntu('Chrome'), 
+    printQRInTerminal: opzione === '1',
     auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
-    decodeJid: makeDecodeJid(global.jidCache),
-    printQRInTerminal: opzione === '1' || methodCodeQR,
-    msgRetryCounterCache,
+    browser: Browsers.ubuntu('Chrome'), // Necessario per Pairing Code
+    markOnlineOnConnect: true,
+    generateHighQualityLinkPreview: true,
 };
 
 global.conn = makeWASocket(connectionOptions);
-global.store.bind(global.conn.ev);
 
-// --- LOGICA PAIRING CODE ---
-if (!fs.existsSync(`./${global.authFile}/creds.json`) && (opzione === '2' || methodCode)) {
-    if (!conn.authState.creds.registered) {
-        let addNumber = phoneNumber ? phoneNumber.replace(/[^0-9]/g, '') : '';
-        if (!addNumber) {
-            console.log(chalk.hex('#00F5FF')('\n ⚡ INSERISCI IL NUMERO (es: 393471234567)'));
-            let num = await question(chalk.hex('#00F5FF')(' ❯ '));
-            addNumber = num.replace(/\D/g, '');
+// --- GESTIONE PAIRING CODE ---
+if (!fs.existsSync(`./${global.authFile}/creds.json`) && opzione === '2') {
+    let phoneNumber = await question(chalk.cyan.bold('\n  ⚡ Inserisci il numero (es. 393471234567): '));
+    phoneNumber = phoneNumber.replace(/\D/g, '');
+    
+    setTimeout(async () => {
+        try {
+            let code = await global.conn.requestPairingCode(phoneNumber);
+            code = code?.match(/.{1,4}/g)?.join("-") || code;
+            console.log(chalk.black.bgGreen.bold('\n  🔑 CODICE DI ABBINAMENTO: '), chalk.white.bold(code), '\n');
+        } catch (e) {
+            console.error(chalk.red('\n  ✖ Errore durante la richiesta del codice.'), e);
         }
-        
-        setTimeout(async () => {
-            try {
-                let codeBot = await conn.requestPairingCode(addNumber);
-                codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-                console.log(chalk.bold.white.bgHex('#008B8B')('\n 🔑 CODICE DI ABBINAMENTO: '), chalk.bold.hex('#39FF14')(codeBot), '\n');
-            } catch (e) {
-                console.error(chalk.red('Errore pairing:'), e);
-            }
-        }, 3000);
-    }
+    }, 3000);
 }
 
+// --- GESTIONE CONNESSIONE ---
 async function connectionUpdate(update) {
     const { connection, lastDisconnect, qr } = update;
-    
-    if (qr && (opzione === '1' || methodCodeQR) && !global.qrGenerated) {
-        console.log(chalk.bold.hex('#00F5FF')('\n 🌀 SCANSIONA IL QR CODE 🌀'));
-        global.qrGenerated = true;
+
+    if (qr && opzione === '1') {
+        console.log(chalk.yellow('\n  🌀 QR Code generato, scansionalo con WhatsApp.'));
     }
 
     if (connection === 'open') {
-        global.qrGenerated = false;
         console.clear();
         const logo = [
-            ' █████╗ ██╗  ██╗██╗ ██████╗ ███╗   ██╗',
-            '██╔══██╗╚██╗██╔╝██║██╔═══██╗████╗  ██║',
-            '███████║ ╚███╔╝ ██║██║   ██║██╔██╗ ██║',
-            '██╔══██║ ██╔██╗ ██║██║   ██║██║╚██╗██║',
-            '██║  ██║██╔╝ ██╗██║╚██████╔╝██║ ╚████║',
-            '╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝'
+            '  █████╗ ██╗  ██╗██╗ ██████╗ ███╗   ██╗',
+            ' ██╔══██╗╚██╗██╔╝██║██╔═══██╗████╗  ██║',
+            ' ███████║ ╚███╔╝ ██║██║   ██║██╔██╗ ██║',
+            ' ██╔══██║ ██╔██╗ ██║██║   ██║██║╚██╗██║',
+            ' ██║  ██║██╔╝ ██╗██║╚██████╔╝██║ ╚████║',
+            ' ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝'
         ];
-        logo.forEach(line => console.log(chalk.hex('#00F5FF').bold(line)));
-        console.log(chalk.hex('#39FF14').bold('\n ✅ AXION BOT ONLINE - Connesso correttamente\n'));
+        logo.forEach(l => console.log(chalk.cyan.bold(l)));
+        console.log(chalk.green.bold('\n  ✅ AXION BOT ONLINE - Connessione stabilita!\n'));
         global.isLogoPrinted = true;
     }
 
     if (connection === 'close') {
-        const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
-        if (reason === DisconnectReason.loggedOut) {
+        const reason = lastDisconnect?.error?.output?.statusCode;
+        console.log(chalk.red(`\n  ⚠️ Connessione chiusa. Ragione: ${reason}`));
+        
+        if (reason === 401) { // Logged out
+            console.log(chalk.red('  Sessione terminata. Rimuovo i file...'));
             if (fs.existsSync(global.authFile)) fs.rmSync(global.authFile, { recursive: true });
             process.exit(1);
         } else {
-            console.log(chalk.hex('#FF4742')(`\n 🔄 Riconnessione... (${reason})`));
+            console.log(chalk.yellow('  Riavvio in corso...'));
+            // Qui puoi aggiungere la logica di spawn per riavviare il processo
         }
     }
 }
 
-conn.ev.on('connection.update', connectionUpdate);
-conn.ev.on('creds.update', saveCreds);
+global.conn.ev.on('connection.update', connectionUpdate);
+global.conn.ev.on('creds.update', saveCreds);
 
-process.on('uncaughtException', (err) => {
-    console.error('ERRORE:', err);
-});
+// Salvataggio DB ogni 30 secondi
+setInterval(async () => {
+    if (global.db.data) await global.db.write();
+}, 30000);
+
+process.on('uncaughtException', (err) => console.error('CRASH:', err));
 
 // Watcher Main File
 const mainWatcher = watch(fileURLToPath(import.meta.url), () => {
