@@ -27,14 +27,18 @@ const DisconnectReason = {
     forbidden: 403,
     unavailableService: 503
 };
+
 const { useMultiFileAuthState, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, makeInMemoryStore } = await import('@realvare/baileys');
 const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+
 protoType();
 serialize();
+
 global.isLogoPrinted = false;
 global.qrGenerated = false;
 global.connectionMessagesPrinted = {};
+global.authFile = 'session'; 
 let methodCodeQR = process.argv.includes("qr");
 let methodCode = process.argv.includes("code");
 let phoneNumber = global.botNumberCode;
@@ -58,23 +62,16 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
 global.db = new Low(new JSONFile('database.json'));
 global.DATABASE = global.db;
+
 global.loadDatabase = async function loadDatabase() {
     if (global.db.READ) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const interval = setInterval(() => {
                 if (!global.db.READ) {
                     clearInterval(interval);
                     resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
                 }
-            }, 1 * 1000);
-            setTimeout(() => {
-                clearInterval(interval);
-                global.db.READ = null;
-                reject(new Error('loadDatabase timeout'));
-            }, 15000);
-        }).catch((e) => {
-            console.error('[ERRORE] loadDatabase:', e.message);
-            return global.loadDatabase();
+            }, 1000);
         });
     }
     if (global.db.data !== null) return;
@@ -91,11 +88,9 @@ global.loadDatabase = async function loadDatabase() {
 };
 loadDatabase();
 
-global.creds = 'creds.json';
-global.authFile = 'session';
-
 const { state, saveCreds } = await useMultiFileAuthState(global.authFile);
 const msgRetryCounterCache = new NodeCache();
+
 const question = (t) => {
     process.stdout.write(t);
     return new Promise((resolve) => {
@@ -106,14 +101,13 @@ const question = (t) => {
 };
 
 let opzione;
-if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) {
+if (!methodCodeQR && !methodCode && !fs.existsSync(`./${global.authFile}/creds.json`)) {
     do {
-        // Palette Colori: Tech Blue & Neon Green
-        const primary = chalk.hex('#00F5FF');   // Bright Cyan
-        const secondary = chalk.hex('#008B8B'); // Darker Cyan
-        const accent = chalk.hex('#39FF14');    // Neon Green
-        const muted = chalk.hex('#95A5A6');     // Gray
-        const error = chalk.hex('#FF4742');     // Soft Red
+        const primary = chalk.hex('#00F5FF');
+        const secondary = chalk.hex('#008B8B');
+        const accent = chalk.hex('#39FF14');
+        const muted = chalk.hex('#95A5A6');
+        const error = chalk.hex('#FF4742');
         const white = chalk.white.bold;
 
         const header = primary('╔════════════════════════════════════════════════╗');
@@ -121,200 +115,80 @@ if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) 
         const title = white('      𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 — PUBLIC DEPLOYMENT');
         const divider = secondary('   ──────────────────────────────────────────');
 
-        const opt1 = `${primary('⌬ [01]')} ${white('AUTENTICAZIONE TRAMITE QR CODE')}`;
-        const opt2 = `${primary('⌬ [02]')} ${white('AUTENTICAZIONE TRAMITE PAIRING CODE')}`;
-
-        const info = [
-            `${secondary('»')} ${muted('Assicurati di avere una connessione stabile.')}`,
-            `${secondary('»')} ${muted('Il codice scadrà dopo pochi minuti.')}`,
-            `${secondary('»')} ${primary.italic('Powered by Axion Ecosystem • v2.6.0')}`,
-        ];
-
-        const prompt = accent.bold('\n ❯ SELEZIONA MODALITÀ: ');
-
         opzione = await question(`
 ${header}
 ${title}
 ${divider}
 
-  ${opt1}
-  ${opt2}
+  ${primary('⌬ [01]')} ${white('AUTENTICAZIONE TRAMITE QR CODE')}
+  ${primary('⌬ [02]')} ${white('AUTENTICAZIONE TRAMITE PAIRING CODE')}
 
 ${divider}
-  ${info.join('\n  ')}
+  ${secondary('»')} ${muted('Assicurati di avere una connessione stabile.')}
+  ${secondary('»')} ${muted('Il codice scadrà dopo pochi minuti.')}
+  ${secondary('»')} ${primary.italic('Powered by Axion Ecosystem • v2.6.0')}
 ${footer}
-${prompt}`);
+${accent.bold('\n ❯ SELEZIONA MODALITÀ: ')}`);
 
         if (!/^[1-2]$/.test(opzione)) {
-            console.log(`
-${error('  ✖ ERRORE DI INPUT')}
-  ${divider}
-  ${muted('  Si prega di inserire solo')} ${accent('1')} ${muted('o')} ${accent('2')}
-  ${muted('  Rilevato carattere non supportato.')}
-  ${divider}
-  ${primary.italic('  Supporto tecnico: t.me/axion_support')}
-            `);
+            console.log(error('\n  ✖ ERRORE: Inserisci 1 o 2\n'));
         }
-    } while ((opzione !== '1' && opzione !== '2') || fs.existsSync(`./${authFile}/creds.json`));
+    } while ((opzione !== '1' && opzione !== '2'));
 }
 
-const groupMetadataCache = new NodeCache({ stdTTL: 300, useClones: false });
-global.groupCache = groupMetadataCache;
-const logger = pino({
-    level: 'silent',
-});
-global.jidCache = new NodeCache({ stdTTL: 600, useClones: false });
+const logger = pino({ level: 'silent' });
 global.store = makeInMemoryStore({ logger });
-
-if (!global.__storePruneInterval) {
-    global.__storePruneInterval = setInterval(() => {
-        try {
-            const store = global.store;
-            if (!store || !store.messages) return;
-
-            const MESSAGE_LIMIT = 40;
-            for (const jid of Object.keys(store.messages)) {
-                const list = store.messages[jid];
-                const arr = list?.array;
-                if (!arr || arr.length <= MESSAGE_LIMIT) continue;
-
-                const keep = new Set(arr.slice(-MESSAGE_LIMIT).map(m => m?.key?.id).filter(Boolean));
-                if (typeof list.filter === 'function') {
-                    list.filter(m => keep.has(m?.key?.id));
-                }
-            }
-
-            if (store.presences && typeof store.presences === 'object') {
-                for (const k of Object.keys(store.presences)) delete store.presences[k];
-            }
-
-            if (global.gc) global.gc();
-        } catch (e) {
-            console.error('Errore pulizia store:', e);
-        }
-    }, 5 * 60 * 1000);
-}
+global.jidCache = new NodeCache({ stdTTL: 600, useClones: false });
+global.groupCache = new NodeCache({ stdTTL: 300, useClones: false });
 
 const makeDecodeJid = (jidCache) => {
     return (jid) => {
         if (!jid) return jid;
         const cached = jidCache.get(jid);
         if (cached) return cached;
-
-        let decoded = jid;
-        if (/:\d+@/gi.test(jid)) {
-            decoded = jidNormalizedUser(jid);
-        }
-        if (typeof decoded === 'object' && decoded.user && decoded.server) {
-            decoded = `${decoded.user}@${decoded.server}`;
-        }
+        let decoded = /:\d+@/gi.test(jid) ? jidNormalizedUser(jid) : jid;
         jidCache.set(jid, decoded);
         return decoded;
     };
 };
+
 const connectionOptions = {
-    logger: logger,
+    logger,
     browser: Browsers.macOS('Safari'),
     auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
     decodeJid: makeDecodeJid(global.jidCache),
-    printQRInTerminal: opzione === '1' || methodCodeQR ? true : false,
-    cachedGroupMetadata: async (jid) => {
-        const cached = global.groupCache.get(jid);
-        if (cached) return cached;
-        try {
-            const metadata = await global.conn.groupMetadata(global.conn.decodeJid(jid));
-            global.groupCache.set(jid, metadata, { ttl: 300 });
-            return metadata;
-        } catch (err) {
-            console.error('Errore nel recupero dei metadati del gruppo:', err);
-            return {};
-        }
-    },
-    getMessage: async (key) => {
-        try {
-            const jid = global.conn.decodeJid(key.remoteJid);
-            const msg = await global.store.loadMessage(jid, key.id);
-            return msg?.message || undefined;
-        } catch (error) {
-            console.error('Errore in getMessage:', error);
-            return undefined;
-        }
-    },
+    printQRInTerminal: opzione === '1' || methodCodeQR,
     msgRetryCounterCache,
-    retryRequestDelayMs: 500,
-    maxMsgRetryCount: 5,
-    shouldIgnoreJid: jid => false,
 };
+
 global.conn = makeWASocket(connectionOptions);
 global.store.bind(global.conn.ev);
 
-if (!fs.existsSync(`./${authFile}/creds.json`)) {
-    if (opzione === '2' || methodCode) {
-        opzione = '2';
-        if (!conn.authState.creds.registered) {
-            let addNumber;
-            if (phoneNumber) {
-                addNumber = phoneNumber.replace(/[^0-9]/g, '');
-            } else {
-                // Colore Cyan Elettrico per la domanda e Neon Green per l'esempio
-                phoneNumber = await question(chalk.bold.hex('#00F5FF')(`\n ⚡ INSERISCI IL NUMERO DI WHATSAPP\n`) + 
-                                           chalk.hex('#95A5A6')(`    Esempio: `) + chalk.bold.hex('#39FF14')(`+393471234567\n`) + 
-                                           chalk.hex('#00F5FF')(' ❯ '));
-                addNumber = phoneNumber.replace(/\D/g, '');
-                if (!phoneNumber.startsWith('+')) phoneNumber = `+${phoneNumber}`;
-            }
-            setTimeout(async () => {
-                let codeBot = await conn.requestPairingCode(addNumber, 'AXIONBOT');
-                codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
-                // Design del codice di abbinamento in Cyan e Bianco
-                console.log(chalk.bold.white.bgHex('#008B8B')(' 🔑 CODICE DI ABBINAMENTO: '), chalk.bold.hex('#39FF14')(codeBot));
-            }, 3000);
+if (!fs.existsSync(`./${global.authFile}/creds.json`) && (opzione === '2' || methodCode)) {
+    if (!conn.authState.creds.registered) {
+        let addNumber = phoneNumber ? phoneNumber.replace(/[^0-9]/g, '') : '';
+        if (!addNumber) {
+            phoneNumber = await question(chalk.bold.hex('#00F5FF')(`\n ⚡ INSERISCI IL NUMERO (es: +393471234567)\n ❯ `));
+            addNumber = phoneNumber.replace(/\D/g, '');
         }
+        setTimeout(async () => {
+            let codeBot = await conn.requestPairingCode(addNumber, 'AXIONBOT');
+            console.log(chalk.bold.white.bgHex('#008B8B')(' 🔑 CODICE DI ABBINAMENTO: '), chalk.bold.hex('#39FF14')(codeBot?.match(/.{1,4}/g)?.join("-") || codeBot));
+        }, 3000);
     }
 }
-
-conn.isInit = false;
-if (!opts['test']) {
-    if (global.db) setInterval(async () => {
-        if (global.db.data) await global.db.write();
-        if (opts['autocleartmp']) {
-            const tmp = ['temp'];
-            tmp.forEach(dirName => {
-                if (!existsSync(dirName)) return;
-                try {
-                    readdirSync(dirName).forEach(file => {
-                        const filePath = join(dirName, file);
-                        try {
-                            const stats = statSync(filePath);
-                            if (stats.isFile() && (Date.now() - stats.mtimeMs) > 2 * 60 * 1000) {
-                                unlinkSync(filePath);
-                            }
-                        } catch {}
-                    });
-                } catch {}
-            });
-        }
-    }, 30 * 1000);
-}
-
-if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
 
 async function connectionUpdate(update) {
     const { connection, lastDisconnect, isNewLogin, qr } = update;
     global.stopped = connection;
+    
     if (isNewLogin) conn.isInit = true;
-    const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
-    if (code && code !== DisconnectReason.loggedOut) {
-        await global.reloadHandler(true).catch(console.error);
-        global.timestamp.connect = new Date;
-    }
-    if (global.db.data == null) await loadDatabase();
+    if (global.db.data == null) await global.loadDatabase();
 
     if (qr && (opzione === '1' || methodCodeQR) && !global.qrGenerated) {
-        // Messaggio QR Code in Cyan e Neon
         console.log(chalk.bold.hex('#00F5FF')(`\n 🌀 SCANSIONA IL CODICE QR — SCADE TRA 45 SECONDI 🌀`));
         global.qrGenerated = true;
     }
@@ -323,138 +197,59 @@ async function connectionUpdate(update) {
         global.qrGenerated = false;
         global.connectionMessagesPrinted = {};
         if (!global.isLogoPrinted) {
-            const techGradient = [
-                '#00F5FF', '#00E5EE', '#00CED1', '#20B2AA', '#39FF14', '#2ECC71', '#39FF14', 
-                '#20B2AA', '#00CED1', '#00E5EE', '#00F5FF', '#00CED1', '#2ECC71', '#00F5FF'
+            const techGradient = ['#00F5FF', '#00E5EE', '#00CED1', '#20B2AA', '#39FF14', '#2ECC71', '#39FF14', '#20B2AA'];
+            const axionbot = [
+                `   █████╗ ██╗  ██╗██╗ ██████╗ ███╗   ██╗    ██████╗  ██████╗ ████████╗`,
+                `  ██╔══██╗╚██╗██╔╝██║██╔═══██╗████╗  ██║    ██╔══██╗██╔═══██╗╚══██╔══╝`,
+                `  ███████║ ╚███╔╝ ██║██║   ██║██╔██╗ ██║    ██████╔╝██║   ██║   ██║   `,
+                `  ██╔══██║ ██╔██╗ ██║██║   ██║██║╚██╗██║    ██╔══██╗██║   ██║   ██║   `,
+                `  ██║  ██║██╔╝ ██╗██║╚██████╔╝██║ ╚████║    ██████╔╝╚██████╔╝   ██║   `,
+                `  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═════╝  ╚═════╝    ╚═╝   `,
+                `                                                                      `,
+                `                   [ SYSTEM ONLINE - AXION BOT ]                   `
             ];
+            axionbot.forEach((line, i) => {
+                console.log(chalk.hex(techGradient[i] || '#00F5FF').bold(line));
+            });
+            global.isLogoPrinted = true;
+        }
+    }
+
+    if (connection === 'close') {
+        const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
+        if (reason === DisconnectReason.badSession) {
+            console.log(chalk.bold.hex('#FF4742')(`\n ⚠️ [ERROR] Sessione corrotta. Elimina la cartella ${global.authFile} e riavvia.`));
+        } else if (reason === DisconnectReason.loggedOut) {
+            console.log(chalk.bold.hex('#FF4742')(`\n ⚠️ [LOGOUT] Disconnesso. Riavvia per un nuovo login.`));
+            if (fs.existsSync(global.authFile)) fs.rmSync(global.authFile, { recursive: true });
+            process.exit(1);
+        } else {
+            console.log(chalk.hex('#00F5FF')(`\n 🔄 [RECONNECTING] Motivo: ${reason}. Riprovo...`));
+            // Qui andrebbe la logica di riavvio se hai un handler dedicato
         }
     }
 }
 
-const axionbot = [
-    `   █████╗ ██╗  ██╗██╗ ██████╗ ███╗   ██╗    ██████╗  ██████╗ ████████╗`,
-    `  ██╔══██╗╚██╗██╔╝██║██╔═══██╗████╗  ██║    ██╔══██╗██╔═══██╗╚══██╔══╝`,
-    `  ███████║ ╚███╔╝ ██║██║   ██║██╔██╗ ██║    ██████╔╝██║   ██║   ██║   `,
-    `  ██╔══██║ ██╔██╗ ██║██║   ██║██║╚██╗██║    ██╔══██╗██║   ██║   ██║   `,
-    `  ██║  ██║██╔╝ ██╗██║╚██████╔╝██║ ╚████║    ██████╔╝╚██████╔╝   ██║   `,
-    `  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═════╝  ╚═════╝    ╚═╝   `,
-    `                                                                      `,
-    `                   [ SYSTEM ONLINE - V${global.versione} ]                   `
-];
+conn.ev.on('connection.update', connectionUpdate);
+conn.ev.on('creds.update', saveCreds);
 
-// Utilizzo la palette techGradient definita in precedenza (Cyan/Neon Green)
-const techGradient = [
-    '#00F5FF', '#00E5EE', '#00CED1', '#20B2AA', '#39FF14', '#2ECC71', '#39FF14', 
-    '#20B2AA', '#00CED1', '#00E5EE', '#00F5FF', '#00CED1', '#2ECC71', '#00F5FF'
-];
-
-axionbot.forEach((line, i) => {
-    const color = techGradient[i] || techGradient[techGradient.length - 1];
-    console.log(chalk.hex(color).bold(line));
-});
-
-global.isLogoPrinted = true;
-
-if (connection === 'close') {
-    const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
-
-    if (reason === DisconnectReason.badSession) {
-        if (!global.connectionMessagesPrinted.badSession) {
-            console.log(chalk.bold.hex('#FF4742')(`\n ⚠️ [SESSION ERROR] Sessione non valida. Elimina la cartella ${global.authFile} e riavvia.`));
-            global.connectionMessagesPrinted.badSession = true;
-        }
-        await global.reloadHandler(true).catch(console.error);
-    } else if (reason === DisconnectReason.connectionLost) {
-        if (!global.connectionMessagesPrinted.connectionLost) {
-            console.log(chalk.hex('#00F5FF').bold(`\n 📡 [SIGNAL LOST] Connessione persa. Riconnessione in corso...\n 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓`));
-            global.connectionMessagesPrinted.connectionLost = true;
-        }
-        await global.reloadHandler(true).catch(console.error);
-    } else if (reason === DisconnectReason.connectionReplaced) {
-        if (!global.connectionMessagesPrinted.connectionReplaced) {
-            console.log(chalk.hex('#00CED1').bold(` 📑 [REPLACED] Un'altra sessione è stata aperta. Chiudi quella attuale.\n 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓`));
-            global.connectionMessagesPrinted.connectionReplaced = true;
-        }
-    } else if (reason === DisconnectReason.loggedOut) {
-        console.log(chalk.bold.hex('#FF4742')(`\n ⚠️ [LOGOUT] Disconnessione effettuata. Cartella ${global.authFile} rimossa. Riavvia per il nuovo login.`));
-        try {
-            if (fs.existsSync(global.authFile)) {
-                fs.rmSync(global.authFile, { recursive: true, force: true });
+// Gestione database auto-save e pulizia temp
+setInterval(async () => {
+    if (global.db.data) await global.db.write();
+    const tmpDir = join(__dirname, 'temp');
+    if (existsSync(tmpDir) && opts['autocleartmp']) {
+        readdirSync(tmpDir).forEach(file => {
+            const fPath = join(tmpDir, file);
+            if (statSync(fPath).isFile() && (Date.now() - statSync(fPath).mtimeMs) > 120000) {
+                unlinkSync(fPath);
             }
-        } catch (e) {
-            console.error('Errore reset sessione:', e);
-        }
-        process.exit(1);
-    } else if (reason === DisconnectReason.restartRequired) {
-        if (!global.connectionMessagesPrinted.restartRequired) {
-            console.log(chalk.hex('#00F5FF').bold(`\n 🔄 [RESTART] Sincronizzazione con il server in corso...`));
-            global.connectionMessagesPrinted.restartRequired = true;
-        }
-        await global.reloadHandler(true).catch(console.error);
-    } else if (reason === DisconnectReason.timedOut) {
-        if (!global.connectionMessagesPrinted.timedOut) {
-            console.log(chalk.hex('#00CED1').bold(`\n ⏳ [TIMEOUT] Tempo di connessione scaduto. Ripristino in corso...\n 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓`));
-            global.connectionMessagesPrinted.timedOut = true;
-        }
-        await global.reloadHandler(true).catch(console.error);
-    } else if (reason !== DisconnectReason.connectionClosed) {
-        if (!global.connectionMessagesPrinted.unknown) {
-            console.log(chalk.bold.hex('#FF4742')(`\n ⚠️ [UNKNOWN] Errore critico: ${reason || '???'} >> ${connection || '???'}`));
-            global.connectionMessagesPrinted.unknown = true;
-        }
-        await global.reloadHandler(true).catch(console.error);
+        });
     }
-} // <--- Questa ora chiude correttamente il blocco "if (connection === 'close')"
+}, 30000);
 
 process.on('uncaughtException', console.error);
 
-(async () => {
-    try {
-        conn.ev.on('connection.update', connectionUpdate);
-        conn.ev.on('creds.update', saveCreds);
-        console.log(chalk.hex('#39FF14').bold(` ✅ 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 ONLINE - Connesso correttamente`));
-    } catch (error) {
-        console.error(chalk.bold.bgHex('#FF4742')(` 🥀 Errore nell'avvio del sistema: `, error));
-    }
-})();
-
-// Gestione Reload Plugins con colori aggiornati
-global.reload = async (_ev, filename) => {
-    if (pluginFilter(filename)) {
-        const dir = global.__filename(join(pluginFolder, filename), true);
-        if (filename in global.plugins) {
-            if (existsSync(dir)) conn.logger.info(chalk.hex('#00F5FF')(` 🛠️ MODIFICATO - '${filename}'`));
-            else {
-                conn.logger.warn(` 🗑️ ELIMINATO: '${filename}'`);
-                return delete global.plugins[filename];
-            }
-        } else conn.logger.info(chalk.hex('#39FF14')(` 🆕 RILEVATO: '${filename}'`));
-
-        try {
-            const module = (await import(`${global.__filename(dir)}?update=${Date.now()}`));
-            global.plugins[filename] = module.default || module;
-        } catch (e) {
-            conn.logger.error(` ⚠️ ERRORE PLUGIN: '${filename}\n${format(e)}'`);
-        } finally {
-            global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
-        }
-    }
-};
-
-// Auto-Pulizia Directory Temp
-setInterval(async () => {
-    if (global.stopped === 'close' || !conn || !conn.user) return;
-    const deleted = clearDirectory(join(__dirname, 'temp'));
-    if (deleted > 0) {
-        console.log(chalk.bold.hex('#00F5FF')(`\n ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━──⊷`));
-        console.log(chalk.bold.hex('#39FF14')(` 🟢 PULIZIA MULTIMEDIA EFFETTUATA`));
-        console.log(chalk.hex('#ECF0F1')(` ┃ File rimossi: ${deleted}`));
-        console.log(chalk.bold.hex('#00F5FF')(` ╰━━━━━━━━━━━━━━━━ 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 ━━──⊷`));
-    }
-}, 1000 * 60 * 60);
-
 // Watcher Main File
-let filePath = fileURLToPath(import.meta.url);
-const mainWatcher = watch(filePath, async () => {
-  console.log(chalk.bgHex('#008B8B')(chalk.white.bold(" 📝 [SYSTEM] File 'main.js' Aggiornato ")));
+const mainWatcher = watch(fileURLToPath(import.meta.url), () => {
+  console.log(chalk.bgHex('#008B8B')(chalk.white.bold(" 📝 [SYSTEM] File Main Aggiornato ")));
 });
