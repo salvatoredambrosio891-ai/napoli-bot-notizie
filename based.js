@@ -348,7 +348,7 @@ const techGradient = [
     '#20B2AA', '#00CED1', '#00E5EE', '#00F5FF', '#00CED1', '#2ECC71', '#00F5FF'
 ];
 
-Axionbot.forEach((line, i) => {
+axionbot.forEach((line, i) => {
     const color = techGradient[i] || techGradient[techGradient.length - 1];
     console.log(chalk.hex(color).bold(line));
 });
