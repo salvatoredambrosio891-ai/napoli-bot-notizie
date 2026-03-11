@@ -265,7 +265,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
                 if (!phoneNumber.startsWith('+')) phoneNumber = `+${phoneNumber}`;
             }
             setTimeout(async () => {
-                let codeBot = await conn.requestPairingCode(addNumber, 'NEXUSBOT');
+                let codeBot = await conn.requestPairingCode(addNumber, 'AXIONBOT');
                 codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
                 console.log(chalk.bold.white(chalk.bgHex('#00CED1')('📞 CODICE DI ABBINAMENTO:')), chalk.bold.white(chalk.hex('#2ECC71')(codeBot)));
             }, 3000);
