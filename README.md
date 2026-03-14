@@ -15,7 +15,7 @@ Il progetto è curato e gestito da:
 | | Profilo | Ruolo |
 |---|---|---|
 | 👤 | **𝕯𝖊ⱥ𝖉𝖑𝐲** | Founder & Lead Developer |
-| 🛡️ | **𝛥𝐗 𝐒𝐭𝐚𝐟𝐟** | Supporto & Sicurezza |
+| 🛡️ | **𝐒𝐭𝐚𝐟𝐟** | Supporto & Sicurezza |
 
 ---
 
@@ -41,7 +41,6 @@ Se desideri aggiungere **𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓** nel tuo gruppo o se
 ## ⚙️ Configurazione
 Una volta ottenuti i file da **𝕯𝖊ⱥ𝖉𝖑𝐲**, potrai personalizzare:
 * **Numero Owner:** Inserisci il tuo numero per ottenere i permessi.
-* **Sessione:** Gestione automatica tramite la cartella `session/`.
 * **Prefissi:** Personalizza il simbolo dei comandi (es: `.`, `!`, `/`,).
 
 ---
