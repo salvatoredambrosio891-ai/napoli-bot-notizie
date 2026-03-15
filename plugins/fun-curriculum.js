@@ -74,7 +74,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
 📅 *Esperienza*: ${esperienza} anni
 🎓 *Formazione*: ${studio}
 
-> 𝐍𝚵𝑿𝐒𝐔𝐒 𝚩𝚯𝐓`
+> 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓`
 
     await conn.sendMessage(chat, {
         text: cvText,
