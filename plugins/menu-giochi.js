@@ -37,6 +37,7 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 ┃ 🏬 ${usedPrefix}shop
 ┃ 🎒 ${usedPrefix}zaino
 ┃ 🤑 ${usedPrefix}vedioggetto <numero>
+┃ 📰 ${usedPrefix}dox
 ╰━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 💍 ғᴀᴍɪɢʟɪᴀ 〕━⬣
