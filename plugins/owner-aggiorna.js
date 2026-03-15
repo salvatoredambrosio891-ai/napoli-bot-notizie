@@ -1,106 +1,35 @@
 import { execSync } from 'child_process'
 
 let handler = async (m, { conn, text }) => {
-  try {
+  if (conn.user.jid == conn.user.jid) {
+    try {
+      let checkUpdates = execSync('git fetch && git status -uno', { encoding: 'utf-8' })
 
-    await m.react('⏳')
+      if (checkUpdates.includes('Your branch is up to date') || checkUpdates.includes('nothing to commit')) {
+        await conn.reply(m.chat, '✅ Il bot è già aggiornato all\'ultima versione!', m)
+        await m.react('✅')
+        return
+      }
+      if (checkUpdates.includes('Your branch is behind')) {
+        let hoodangels = execSync('git reset --hard && git pull' + (m.fromMe && text ? ' ' + text : ''), { encoding: 'utf-8' })
+        await conn.reply(m.chat, `${hoodangels}`, m)
+        await m.react('🔮')
+      } else {
+        await conn.reply(m.chat, '⚠️ Stato repository non chiaro. Forzando aggiornamento...', m)
+        let hoodangels = execSync('git reset --hard && git pull' + (m.fromMe && text ? ' ' + text : ''), { encoding: 'utf-8' })
+        await conn.reply(m.chat, `🔄 Aggiornamento forzato completato!\n\n${hoodangels}`, m)
+        await m.react('🔮')
+      }
 
-    let status = execSync('git fetch && git status -uno', { encoding: 'utf-8' })
-    let message = ''
-    let reaction = '🚀'
-
-    // ✅ Già aggiornato
-    if (
-      status.includes('Your branch is up to date') ||
-      status.includes('nothing to commit')
-    ) {
-
-      message = `
-╭━━〔 🔄 AGGIORNAMENTO 〕━⬣
-┃
-┃  ✅ Il bot è già aggiornato
-┃  📦 Nessun update disponibile
-┃
-╰━━━━━━━━━━━━━━━━━━━━⬣`
-
-      reaction = '✅'
+    } catch (err) {
+      await conn.reply(m.chat, `${global.errore}\n\nDettaglio errore: ${err.message}`, m)
+      await m.react('❌')
     }
-
-    // 🔄 Update disponibile
-    else if (status.includes('Your branch is behind')) {
-
-      let update = execSync(
-        'git reset --hard && git pull' + (m.fromMe && text ? ' ' + text : ''),
-        { encoding: 'utf-8' }
-      )
-
-      message = `
-╭━━━〔 🔄 COMPLETATO 〕━━━⬣
-┃
-┃  📥 Nuova versione installata
-┃  🤖 Bot aggiornato con successo
-┃  📦 OUTPUT:
-\`\`\`
-${update.trim()}
-\`\`\`
-╰━━━━━━━━━━━━━━━━━━━━⬣`
-
-      reaction = '🚀'
-    }
-
-    // ⚠️ Update forzato
-    else {
-
-      let force = execSync(
-        'git reset --hard && git pull' + (m.fromMe && text ? ' ' + text : ''),
-        { encoding: 'utf-8' }
-      )
-
-      message = `
-╭━━━〔 ⚙️ UPDATE FORZATO 〕━━━⬣
-┃
-┃  🔄 Operazione completata
-┃
-┃  📦 OUTPUT:
-┃
-\`\`\`
-${force.trim()}
-\`\`\`
-┃
-╰━━━━━━━━━━━━━━━━━━━━⬣`
-
-      reaction = '🤖'
-    }
-
-    await conn.reply(m.chat, message.trim(), m)
-    await m.react(reaction)
-
-  } catch (err) {
-
-    await conn.reply(
-      m.chat,
-`
-╭━━━〔 ❌ ERRORE 〕━━━⬣
-┃
-┃  ⚠️ Aggiornamento fallito
-┃
-┃  📄 DETTAGLI:
-┃
-\`\`\`
-${err.message}
-\`\`\`
-┃
-╰━━━━━━━━━━━━━━━━━━━━⬣`.trim(),
-      m
-    )
-
-    await m.react('❌')
   }
 }
 
 handler.help = ['aggiorna']
 handler.tags = ['creatore']
 handler.command = ['aggiorna', 'update', 'aggiornabot']
-handler.rowner = true
-
+handler.owner = true
 export default handler
