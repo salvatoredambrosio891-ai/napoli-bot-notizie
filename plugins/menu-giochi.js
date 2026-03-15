@@ -28,6 +28,7 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 
 ╭━━━〔 🎲 ғᴜɴ 〕━⬣
 ┃ 🔮 ${usedPrefix}random <reply/tag>
+┃ 🗓️ ${usedPrefix}ricorda <orario>
 ┃ 🔥 ${usedPrefix}flame <reply/tag>
 ┃ 🏷️ ${usedPrefix}s
 ┃ ✨ ${usedPrefix}wm
