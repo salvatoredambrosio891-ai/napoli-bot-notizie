@@ -1,61 +1,86 @@
-import cron from 'node-cron';
-import fs from 'fs';
+const handler = async (m, { conn, text }) => {
 
-// Funzione per caricare i dati
-const loadReminders = () => {
-    return fs.existsSync('./reminders.json') ? JSON.parse(fs.readFileSync('./reminders.json', 'utf8')) : [];
-};
+if (!text) {
+return m.reply(`⏰ *PROMEMORIA*
 
-let handler = async (m, { conn, text, mentionedJid }) => {
-    // text: "@Deadly alle 16:30 deve bere acqua"
-    // mentionedJid: contiene l'ID reale (es. 212778494602@s.whatsapp.net)
-    
-    let [time, ...msg] = text.split(' ');
-    
-    // Validazione: controlliamo se c'è un tag
-    if (!mentionedJid || mentionedJid.length === 0) {
-        return m.reply("『 ❌ 』- *Devi taggare la persona!* Esempio: .ricorda @nome 16:30 messaggio");
-    }
+Uso:
+.ricorda 16:23 messaggio`)
+}
 
-    let reminder = { 
-        time, 
-        text: msg.join(' '), 
-        chat: m.chat, 
-        taggedUser: mentionedJid[0] // Salva l'ID dell'utente taggato
-    };
+const args = text.split(" ")
+const time = args.shift()
+const message = args.join(" ")
 
-    let reminders = loadReminders();
-    reminders.push(reminder);
-    fs.writeFileSync('./reminders.json', JSON.stringify(reminders));
+if (!time || !message) {
+return m.reply("⚠️ Formato corretto:\n.ricorda HH:MM messaggio")
+}
 
-    m.react('🧠');
-    m.reply(`『 🧠 』- *Promemoria memorizzato per le ${time}!*\n*Taggherò @${mentionedJid[0].split('@')[0]}*\n\n𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 è sul pezzo.`);
-};
+const [hour, minute] = time.split(":").map(Number)
 
-handler.command = ['ricorda'];
-export default handler;
+if (isNaN(hour) || isNaN(minute)) {
+return m.reply("⚠️ Orario non valido")
+}
 
-// Schedulatore
-cron.schedule('* * * * *', async () => {
-    let now = new Date();
-    let currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
-                      now.getMinutes().toString().padStart(2, '0');
+const now = new Date()
+const target = new Date()
 
-    let reminders = loadReminders();
-    let toKeep = [];
+target.setHours(hour)
+target.setMinutes(minute)
+target.setSeconds(0)
 
-    for (let r of reminders) {
-        if (r.time === currentTime) {
-            if (global.conn) {
-                // Invia il messaggio menzionando l'utente
-                await global.conn.sendMessage(r.chat, { 
-                    text: `『 ⏰ 』- *Promemoria per 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓:*\n@${r.taggedUser.split('@')[0]} ${r.text}`, 
-                    mentions: [r.taggedUser] 
-                });
-            }
-        } else {
-            toKeep.push(r);
-        }
-    }
-    fs.writeFileSync('./reminders.json', JSON.stringify(toKeep));
-});
+if (target < now) target.setDate(target.getDate() + 1)
+
+const delay = target - now
+
+const tag = `@${m.sender.split("@")[0]}`
+
+m.reply(`╭─⏰ *PROMEMORIA PROGRAMMATO*
+│
+├ 👤 Utente: ${tag}
+├ 🕒 Orario: ${time}
+├ 💬 Messaggio:
+│ ${message}
+│
+╰ Promemoria salvato ✔️`)
+
+setTimeout(async () => {
+
+let msg = await conn.sendMessage(m.chat,{
+text:`⏳ *PROMEMORIA IN ARRIVO...*`
+})
+
+for (let i = 5; i > 0; i--) {
+
+await new Promise(r => setTimeout(r,1000))
+
+await conn.sendMessage(m.chat,{
+text:`⏳ *PROMEMORIA IN ARRIVO...*
+
+⌛ ${i} secondi`,
+edit: msg.key
+})
+
+}
+
+await conn.sendMessage(m.chat,{
+text:`╔═══ ⏰ PROMEMORIA ⏰ ═══╗
+
+👤 ${tag}
+
+💬 ${message}
+
+🕒 Orario: ${time}
+
+╚════════════════════╝`,
+mentions:[m.sender]
+})
+
+}, delay - 5000)
+
+}
+
+handler.help = ['ricorda']
+handler.tags = ['utility']
+handler.command = /^ricorda$/i
+
+export default handler
