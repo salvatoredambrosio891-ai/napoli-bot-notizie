@@ -1,106 +1,102 @@
-let handler = async (m, { conn, usedPrefix }) => {
-
-let user = m.sender
-if (!global.db.data.users[user]) global.db.data.users[user] = {}
-
-let u = global.db.data.users[user]
-
-if (!u.euro) u.euro = 0
-if (!u.xp) u.xp = 0
-if (!u.level) u.level = 1
+global.begSession = global.begSession || {}
 
 const scenarios = [
 {
-txt:"👵 Una vecchietta ti vede e sorride.\nCosa fai?",
-options:["Chiedi gentilmente","Ignori"],
+txt:"👵 Una vecchietta ti vede e sorride.\n\n1️⃣ Chiedi gentilmente\n2️⃣ Ignori",
 bonus:[randomNum(5,15),0]
 },
 {
-txt:"🧔 Un uomo ti guarda sospettoso.\nCosa fai?",
-options:["Racconti la tua storia","Fingi di nulla"],
+txt:"🧔 Un uomo ti guarda sospettoso.\n\n1️⃣ Racconti la tua storia\n2️⃣ Fingi di nulla",
 bonus:[randomNum(5,20),0]
 },
 {
-txt:"👦 Un bambino ti offre delle monete.\nCosa fai?",
-options:["Accetti con gratitudine","Rifiuti"],
+txt:"👦 Un bambino ti offre delle monete.\n\n1️⃣ Accetti con gratitudine\n2️⃣ Rifiuti",
 bonus:[randomNum(2,10),0]
 },
 {
-txt:"💼 Una persona ti offre una banconota grande.\nAccetti?",
-options:["Accetto","Rifiuto"],
+txt:"💼 Una persona ti offre una banconota grande.\n\n1️⃣ Accetto\n2️⃣ Rifiuto",
 bonus:[randomNum(15,30),0]
 }
 ]
 
+let handler = async (m,{conn,command})=>{
+
+const user = m.sender
+
+if(!global.db.data.users[user])
+global.db.data.users[user] = {euro:0,xp:0,level:1}
+
+const u = global.db.data.users[user]
+
+if(command === "elemosina" || command === "beg"){
+
 let ev = scenarios[Math.floor(Math.random()*scenarios.length)]
 
-global.begGame = global.begGame || {}
-global.begGame[user] = ev
-
-await conn.sendMessage(m.chat,{
-text:`🙏 *ELEMSOINA*\n\n${ev.txt}`,
-footer:"Scegli cosa fare",
-buttons:[
-{
-buttonId:`beg_0`,
-buttonText:{displayText:ev.options[0]},
-type:1
-},
-{
-buttonId:`beg_1`,
-buttonText:{displayText:ev.options[1]},
-type:1
+global.begSession[user] = {
+step:"choice",
+event:ev
 }
-],
-headerType:1
-},{quoted:m})
+
+let txt = `🙏 *ELEMOSINA*\n\n`
+txt += `${ev.txt}\n\n`
+txt += `💰 Soldi: ${u.euro}€\n`
+txt += `_Scrivi 1 o 2_`
+
+return conn.reply(m.chat,txt,m)
 
 }
 
-handler.command = /^(beg|elemosina)$/i
-export default handler
+}
 
+/* ===== RISPOSTA ===== */
 
-export async function before(m,{ conn }){
+handler.before = async (m,{conn})=>{
 
-if(!global.begGame) return
-let user = m.sender
-if(!global.begGame[user]) return
+const user = m.sender
+const input = m.text?.trim()
 
-let id = m.text || m.message?.buttonsResponseMessage?.selectedButtonId
-if(!id) return
-if(!id.startsWith('beg_')) return
+if(!global.begSession[user]) return
 
-let choice = Number(id.split('_')[1])
+const session = global.begSession[user]
+const u = global.db.data.users[user]
 
-let ev = global.begGame[user]
+if(session.step === "choice" && /^[12]$/.test(input)){
+
+let ev = session.event
+let choice = input-1
 let bonus = ev.bonus[choice]
 
-let u = global.db.data.users[user]
-
 u.euro += bonus
+
 let xpGain = randomNum(1,5)
 u.xp += xpGain
 
 let lvlUp = false
+
 if(u.xp >= u.level*50){
 u.level++
 u.xp = 0
 lvlUp = true
 }
 
-await conn.reply(m.chat,
-`💰 Hai guadagnato *${bonus}€*
+delete global.begSession[user]
 
-💶 Saldo: ${u.euro}€
-🏅 Livello: ${u.level}
-⭐ XP: ${u.xp}/${u.level*50}
-${lvlUp ? "\n🎉 LEVEL UP!" : ""}`,
-m)
+let msg = `💰 Hai ricevuto *${bonus}€*\n\n`
+msg += `💶 Soldi totali: ${u.euro}€\n`
+msg += `🏅 Livello: ${u.level}\n`
+msg += `⭐ XP: ${u.xp}/${u.level*50}`
 
-delete global.begGame[user]
+if(lvlUp) msg += `\n\n🎉 *LEVEL UP!*`
+
+return conn.reply(m.chat,msg,m)
 
 }
+
+}
+
+handler.command = /^(beg|elemosina)$/i
+
+export default handler
 
 function randomNum(min,max){
 return Math.floor(Math.random()*(max-min+1))+min
