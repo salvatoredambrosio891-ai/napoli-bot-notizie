@@ -44,11 +44,6 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 ╭━━━〔 💍 ғᴀᴍɪɢʟɪᴀ 〕━⬣
 ┃ 👰 ${usedPrefix}sposa
 ┃ 💔 ${usedPrefix}divorzia
-┃ 🫂 ${usedPrefix}amante
-┃ 👶 ${usedPrefix}adotta
-┃ 👨‍👩‍👧‍👦 ${usedPrefix}famiglia
-┃ 👣 ${usedPrefix}toglifiglio
-┃ 💔 ${usedPrefix}togliamante
 ╰━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 📌 ɪɴғᴏ 〕━⬣
