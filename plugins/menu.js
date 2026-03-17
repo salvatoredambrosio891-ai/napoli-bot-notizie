@@ -14,8 +14,8 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
   ◈ *ᴜsᴇʀ:* @${userId.split('@')[0]}
   ◈ *ᴜᴘᴛɪᴍᴇ:* ${uptimeStr}
   ◈ *ᴜᴛᴇɴᴛɪ:* ${totalUsers}
-  ◈ *ᴅᴇᴠ:* 𝕯𝖊ⱥ𝖉𝖑𝐲
-  ◈ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝚫𝐗𝐈𝐎𝐍*
+  ◈ *ᴅᴇᴠ:* _*Deadly & Staff*_
+  ◈ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓*
 ╼━━━━━━━━━━━━━━╾
 `.trim();
 
