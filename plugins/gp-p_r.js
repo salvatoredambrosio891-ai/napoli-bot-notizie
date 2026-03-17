@@ -1,64 +1,71 @@
 var handler = async (m, { conn, text, command }) => {
-  let action, successTitle, errorMsg
+  let action, icon, title, effect
   let sender = m.sender
 
-  // 🔥 PRENDE TUTTI GLI UTENTI TAGGATI
-  let users = []
+  // Identificazione utenti (Tag, Quoted o Numero)
+  let users = m.mentionedJid && m.mentionedJid.length > 0 
+    ? m.mentionedJid 
+    : (m.quoted ? [m.quoted.sender] : [])
 
-  if (m.mentionedJid && m.mentionedJid.length > 0) {
-    users = m.mentionedJid
-  } else if (m.quoted && m.quoted.sender) {
-    users = [m.quoted.sender]
-  } else if (text) {
+  if (!users.length && text) {
     let numbers = text.split(/[\s,]+/).filter(v => !isNaN(v))
     users = numbers.map(n => n + '@s.whatsapp.net')
   }
 
   if (!users.length) {
-    return conn.reply(m.chat, '⚠️ 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 • Devi menzionare almeno un utente per il rituale!', m)
+    return conn.reply(m.chat, '⚠️ 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 • 𝐈𝐧𝐬𝐞𝐫𝐢𝐬𝐜𝐢 𝐮𝐧 𝐛𝐞𝐫𝐬𝐚𝐠𝐥𝐢𝐨 𝐩𝐞𝐫 𝐢𝐥 𝐜𝐨𝐦𝐚𝐧𝐝𝐨.', m)
   }
 
+  // Configurazione Azione
   if (['promote', 'promuovi', 'p', 'p2'].includes(command)) {
     action = 'promote'
-    successTitle = '⚡ 𝐏𝐑𝐎𝐌𝐎𝐙𝐈𝐎𝐍𝐄 𝐂𝐎𝐌𝐏𝐋𝐄𝐓𝐀𝐓𝐀 ⚡'
-    errorMsg = '💀 Il rituale di potere è fallito!'
-  }
-
-  if (['demote', 'retrocedi', 'r'].includes(command)) {
+    icon = '⛩️'
+    title = '𝐄𝐋𝐄𝐕𝐀𝐙𝐈𝐎𝐍𝐄'
+    effect = '⚡ 𝐆𝐄𝐑𝐀𝐑𝐂𝐇𝐈𝐀 𝐀𝐆𝐆𝐈𝐎𝐑𝐍𝐀𝐓𝐀'
+  } else {
     action = 'demote'
-    successTitle = '☠️ 𝐑𝐄𝐓𝐑𝐎𝐂𝐄𝐒𝐒𝐈𝐎𝐍𝐄 𝐂𝐎𝐌𝐏𝐋𝐄𝐓𝐀𝐓𝐀 ☠️'
-    errorMsg = '💀 Tentativo di abbassamento fallito!'
+    icon = '⚙️'
+    title = '𝐄𝐒𝐏𝐔𝐋𝐒𝐈𝐎𝐍𝐄'
+    effect = '💀 𝐏𝐎𝐓𝐄𝐑𝐄 𝐑𝐄𝐕𝐎𝐂𝐀𝐓𝐎'
   }
 
   try {
     await conn.groupParticipantsUpdate(m.chat, users, action)
+    
+    let tagList = users.map(u => ' @' + u.split('@')[0]).join('\n│ 👥 ')
 
-    let tagList = users.map(u => '@' + u.split('@')[0]).join(' ')
-
-    let successMsg = `
-╭━━━⚡ 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 ⚡━━━╮
-│ 🔥 𝐑𝐈𝐓𝐔𝐀𝐋𝐄 𝐃𝐈 𝐂𝐎𝐌𝐀𝐍𝐃𝐎 𝐄𝐒𝐄𝐆𝐔𝐈𝐓𝐎
+    let axionMsg = `
+┏━━━━━━━━━━━━━━━━━━┓
+┃    🔱  𝚫𝐗𝐈𝚶𝐍 𝐒𝐘𝐒𝐓𝐄𝐌  🔱
+┗━━━━━━━━━━━━━━━━━━┛
 │
-│ 👥 𝐁𝐞𝐫𝐬𝐚𝐠𝐥𝐢: ${tagList}
-│ ✨ 𝐀𝐳𝐢𝐨𝐧𝐞: ${successTitle}
-│ 🕷️ 𝐃𝐚: @${sender.split('@')[0]}
+│ 🛠️ 𝐎𝐏𝐄𝐑𝐀𝐙𝐈𝐎𝐍𝐄: ${title}
+│ 📊 𝐒𝐓𝐀𝐓𝐔𝐒: 𝐂𝐎𝐌𝐏𝐋𝐄𝐓𝐀𝐓𝐎
 │
-│ ☠️ 𝚫𝐗𝐈𝚶𝐍 osserva...
-╰━━━━━━━━━━━━━━━━╯
-`.trim()
+│ 👤 𝐄𝐒𝐄𝐂𝐔𝐓𝐎𝐑𝐄: @${sender.split('@')[0]}
+│ 👥 𝐁𝐄𝐑𝐒𝐀𝐆𝐋𝐈:
+│ 👥 ${tagList}
+│
+│ 🛡️ ${effect}
+│
+┃ 🔗 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 𝐂𝐎𝐍𝐓𝐑𝐎𝐋
+┗━━━━━━━━━━━━━━━━━━┛`.trim()
 
-    conn.reply(m.chat, successMsg, m, {
+    await conn.sendMessage(m.chat, {
+      text: axionMsg,
       mentions: [sender, ...users]
-    })
+    }, { quoted: m })
 
   } catch (e) {
-    conn.reply(m.chat, `💀 ${errorMsg}`, m)
+    conn.reply(m.chat, `❌ 𝚫𝐗𝐈𝚶𝐍 𝐄𝐑𝐑𝐎𝐑: 𝐈𝐦𝐩𝐨𝐬𝐬𝐢𝐛𝐢𝐥𝐞 𝐦𝐨𝐝𝐢𝐟𝐢𝐜𝐚𝐑𝐞 𝐢 𝐩𝐞𝐫𝐦𝐞𝐬𝐬𝐢.`, m)
   }
 }
 
+handler.help = ['promote', 'demote']
+handler.tags = ['admin']
 handler.command = ['promote', 'promuovi', 'p', 'p2', 'demote', 'retrocedi', 'r']
 handler.group = true
-handler.owner = true
+handler.admin = true
 handler.botAdmin = true
 
 export default handler
