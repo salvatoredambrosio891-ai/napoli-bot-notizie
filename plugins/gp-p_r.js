@@ -21,12 +21,11 @@ var handler = async (m, { conn, text, command }) => {
     action = 'promote'
     icon = '⛩️'
     title = '𝐄𝐋𝐄𝐕𝐀𝐙𝐈𝐎𝐍𝐄'
-    effect = '⚡ 𝐆𝐄𝐑𝐀𝐑𝐂𝐇𝐈𝐀 𝐀𝐆𝐆𝐈𝐎𝐑𝐍𝐀𝐓𝐀'
   } else {
     action = 'demote'
     icon = '⚙️'
     title = '𝐄𝐒𝐏𝐔𝐋𝐒𝐈𝐎𝐍𝐄'
-    effect = '💀 𝐏𝐎𝐓𝐄𝐑𝐄 𝐑𝐄𝐕𝐎𝐂𝐀𝐓𝐎'
+    effect = '𝐏𝐎𝐓𝐄𝐑𝐄 𝐑𝐄𝐕𝐎𝐂𝐀𝐓𝐎'
   }
 
   try {
@@ -46,9 +45,7 @@ var handler = async (m, { conn, text, command }) => {
 │ 👥 𝐁𝐄𝐑𝐒𝐀𝐆𝐋𝐈:
 │ 👥 ${tagList}
 │
-│ 🛡️ ${effect}
-│
-┃ 🔗 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 𝐂𝐎𝐍𝐓𝐑𝐎𝐋
+┃ 🔗 𝚫𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 
 ┗━━━━━━━━━━━━━━━━━━┛`.trim()
 
     await conn.sendMessage(m.chat, {
