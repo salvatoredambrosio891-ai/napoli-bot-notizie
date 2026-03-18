@@ -1,4 +1,5 @@
 // plugins/all-tools-meteo.js
+console.log('plugin meteo csricsto)
 import axios from "axios";
 
 const API_KEY = "2d61a72574c11c4f36173b627f8cb177";
