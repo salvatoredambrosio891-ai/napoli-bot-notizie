@@ -31,6 +31,7 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 ┃ 🗓️ ${usedPrefix}ricorda <orario>
 ┃ 🔥 ${usedPrefix}flame <reply/tag>
 ┃ 💋 ${usedPrefix}bacia <reply/tag>
+┃ 🤗 ${usedPrefix}abbraccia <reply/tag>
 ┃ 😏 ${usedPrefix}sega <reply/tag>
 ┃ 🏷️ ${usedPrefix}s
 ┃ ✨ ${usedPrefix}wm
