@@ -57,7 +57,7 @@ let handler = async (m, { conn }) => {
   const sent = await conn.sendMessage(
     chatId,
     {
-      text: `*Ora faccio una seg a ${tag(destinatario)}...* 😏`,
+      text: `*Ora faccio una sega a ${tag(destinatario)}...* 😏`,
       mentions: [destinatario]
     },
     { quoted: m }
