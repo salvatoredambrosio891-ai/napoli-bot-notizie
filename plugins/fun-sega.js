@@ -91,7 +91,7 @@ let handler = async (m, { conn }) => {
     conn,
     chatId,
     key,
-    `*\n\n${tag(mittente)}* ha fattob una *sega* a ${tag(destinatario)} in *${elapsed} secondi!*`,
+`*🤤 Ohhsyy babyy* 🥵\n\n ${tag(mittente)} *ha fatto una sega a ${tag(destinatario)} e ha sborrato dappertutto in ${elapsed} secondi! 💦*`,
     [mittente, destinatario]
   )
 }
