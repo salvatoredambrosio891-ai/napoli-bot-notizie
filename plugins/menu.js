@@ -20,15 +20,16 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 `.trim();
 
     // Configurazione completa di tutti i bottoni del menu
-    const buttons = [
-        { buttonId: `${usedPrefix}admin`, buttonText: { displayText: '🛡️ ADMIN' }, type: 1 },
-        { buttonId: `${usedPrefix}mod`, buttonText: { displayText: '🧑‍⚖️ MOD' }, type: 1 },
-        { buttonId: `${usedPrefix}owner`, buttonText: { displayText: '👑 OWNER' }, type: 1 },
-        { buttonId: `${usedPrefix}funzioni`, buttonText: { displayText: '⚙️ FUNZIONI' }, type: 1 },
-        { buttonId: `${usedPrefix}giochi`, buttonText: { displayText: '🎮 GIOCHI' }, type: 1 },
-        { buttonId: `${usedPrefix}soldi`, buttonText: { displayText: '💰 SOLDI' }, type: 1 },
-        { buttonId: `${usedPrefix}immagini`, buttonText: { displayText: '🖼️ IMMAGINI' }, type: 1 }
-    ];
+const buttons = [
+    { buttonId: `${usedPrefix}admin`, buttonText: { displayText: '🛡️ ADMIN' }, type: 1 },
+    { buttonId: `${usedPrefix}mod`, buttonText: { displayText: '🧑‍⚖️ MOD' }, type: 1 },
+    { buttonId: `${usedPrefix}owner`, buttonText: { displayText: '👑 OWNER' }, type: 1 },
+    { buttonId: `${usedPrefix}funzioni`, buttonText: { displayText: '⚙️ FUNZIONI' }, type: 1 },
+    { buttonId: `${usedPrefix}giochi`, buttonText: { displayText: '🎮 GIOCHI' }, type: 1 },
+    { buttonId: `${usedPrefix}soldi`, buttonText: { displayText: '💰 SOLDI' }, type: 1 },
+    { buttonId: `${usedPrefix}immagini`, buttonText: { displayText: '🖼️ IMMAGINI' }, type: 1 },
+    { buttonId: `${usedPrefix}staff`, buttonText: { displayText: '👥 STAFF' }, type: 1 }
+];
 
     await conn.sendMessage(message.chat, {
         text: menuBody,
