@@ -140,6 +140,6 @@ await conn.sendMessage(
   }
 }
 
-export const command = /^(?:meteo)$/i;
+export const command = ["meteo"];
 export const help = ["meteo <città>"];
 export const tags = ["tools"];
