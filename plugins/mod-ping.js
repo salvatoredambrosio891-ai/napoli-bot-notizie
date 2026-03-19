@@ -41,7 +41,7 @@ let handler = async (m, { conn, usedPrefix }) => {
       text: textMsg,
       footer: "𝑷𝑰𝑵𝑮 𝑩𝒀 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓",
       buttons: [
-        { buttonId: usedPrefix + "pingmod", buttonText: { displayText: "📡 𝐑𝐢𝐟𝐚𝐢 𝐩𝐢𝐧𝐠" }, type: 1 }
+        { buttonId: usedPrefix + "pingm", buttonText: { displayText: "📡 𝐑𝐢𝐟𝐚𝐢 𝐩𝐢𝐧𝐠" }, type: 1 }
       ],
       headerType: 1
     }, { quoted: m });
@@ -61,7 +61,7 @@ function clockString(ms) {
 
 handler.help = ['ping'];
 handler.tags = ['info'];
-handler.command = /^(pingmod)$/i;
+handler.command = /^(pingm)$/i;
 handler.premium = false
 
 export default handler;
