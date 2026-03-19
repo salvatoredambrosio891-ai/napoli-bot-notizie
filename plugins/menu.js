@@ -1,9 +1,15 @@
-
 import { performance } from 'perf_hooks';
-import pkg from '../package.json' assert { type: 'json' };
+
+// FIX package.json (compatibile ovunque)
+let pkg;
+try {
+    pkg = require('../package.json');
+} catch {
+    pkg = { version: 'unknown' };
+}
 
 const handler = async (message, { conn, usedPrefix = '.' }) => {
-    const userId = message.sender;
+    const userId = message.sender || message.key.participant || message.key.remoteJid;
 
     const old = performance.now();
 
@@ -14,7 +20,6 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 
     const ping = Math.round(performance.now() - old);
 
-    // Testo principale con statistiche e info sistema
     const menuBody = `
 『 𝚫𝐗𝐈𝐎𝐍 • 𝐈𝐍𝐅𝐎 』
 ╼━━━━━━━━━━━━━━╾
@@ -29,7 +34,6 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
 ╼━━━━━━━━━━━━━━╾
 `.trim();
 
-    // Configurazione completa di tutti i bottoni del menu
     const buttons = [
         { buttonId: `${usedPrefix}admin`, buttonText: { displayText: '🛡️ ADMIN' }, type: 1 },
         { buttonId: `${usedPrefix}mod`, buttonText: { displayText: '🧑‍⚖️ MOD' }, type: 1 },
@@ -50,7 +54,7 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
     }, { quoted: message });
 };
 
-// Funzione calcolo tempo di attività
+// Funzione uptime
 function clockString(ms) {
     const d = Math.floor(ms / 86400000);
     const h = Math.floor(ms / 3600000) % 24;
