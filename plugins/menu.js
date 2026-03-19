@@ -17,7 +17,14 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
     const menuBody = `
 『 𝚫𝐗𝐈𝐎𝐍 • 𝐈𝐍𝐅𝐎 』
 ╼━━━━━━━━━━━━━━╾
-
+  ◈ *ᴜsᴇʀ:* @${userId.split('@')[0]}
+  ◈ *ᴜᴘᴛɪᴍᴇ:* ${uptimeStr}
+  ◈ *ᴜᴛᴇɴᴛɪ:* ${totalUsers}
+  ◈ *ᴄᴏᴍᴀɴᴅɪ:* ${totalCommands}
+  ◈ *ᴘɪɴɢ:* ${ping} ᴍs
+  ◈ *ᴅᴇᴠ:* _*Deadly & Staff*_
+  ◈ *ᴠᴇʀsɪᴏɴᴇ:* ${pkg.version}
+  ◈ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓*
 ╼━━━━━━━━━━━━━━╾
 `.trim();
 
