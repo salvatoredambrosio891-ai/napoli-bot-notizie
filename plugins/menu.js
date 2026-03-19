@@ -45,6 +45,11 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
         { buttonId: `${usedPrefix}staff`, buttonText: { displayText: '👥 STAFF' }, type: 1 }
     ];
 
+await conn.sendMessage(message.chat, {
+  image: { url: './media/main-menu.jpeg' }
+}, { quoted: message })
+
+await new Promise(r => setTimeout(r, 300))
     await conn.sendMessage(message.chat, {
         text: menuBody,
         footer: 'sᴇʟᴇᴢɪᴏɴᴀ ᴜɴ ᴍᴏᴅᴜʟᴏ ᴅᴀʟʟ\'ɪɴᴛᴇʀғᴀᴄᴄɪᴀ',
