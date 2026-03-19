@@ -3,9 +3,10 @@ import fs from "fs"
 import path from "path"
 
 let handler = async (m, { conn }) => {
-  const  audio = path.join(process.cwd(), "media", "foxa.wav")
 
-  if (!fs.existsSync(videoPath)) {
+  const audio = path.join(process.cwd(), "media", "foxa.aac")
+
+  if (!fs.existsSync(audio)) {
     return conn.sendMessage(
       m.chat,
       { text: "❌ File audio non trovato" },
@@ -13,13 +14,14 @@ let handler = async (m, { conn }) => {
     )
   }
 
-  const  audioBuffer = fs.readFileSync( audioPath)
+  const audioBuffer = fs.readFileSync(audio)
 
   await conn.sendMessage(
     m.chat,
     {
-     audio:  audioBuffer,
-      mimetype: " audio/wav"
+      audio: audioBuffer,
+      mimetype: "audio/aac"
+      ptt: true
     },
     { quoted: m }
   )
