@@ -12,20 +12,20 @@ const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
 const moduleCache = new NodeCache({ stdTTL: 300 });
 
 global.owner = [
-  ['212778494602', '𝕯𝖊ⱥ𝖉𝖑𝐲', true],
-  ['212781816909', 'Luxifer', true], 
-  ['639350468907', 'bonzino', true], 
+  ['393336413960', 'creatore, true],
+  ['16625545197', 'simone-staff', true], 
+  
 ]
 global.mods = ['xxxxxxxxxx', 'xxxxxxxxxx']
 global.prems = ['xxxxxxxxxx', 'xxxxxxxxxx']
 
-global.nomebot   = '𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓'
-global.nomepack  = '𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓'
-global.wm        = '𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓'
-global.autore    = '𝕯𝖊ⱥ𝖉𝖑𝐲'
-global.dev       = '𝕯𝖊ⱥ𝖉𝖑𝐲'
+global.nomebot   = '𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓'
+global.nomepack  = '𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓'
+global.wm        = '𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓'
+global.autore    = 'Salvatore'
+global.dev       = 'Salvatore'
 global.versione  = pkg.version
-global.testobot  = `AXION-CORE-V${pkg.version}`
+global.testobot  = `𝐍𝐀𝐏𝐎𝐋𝐈-CORE-V${pkg.version}`
 
 // 🌐 LINK
 global.repobot   = 'https://github.com/axion-bot/axion-bot-Md'
