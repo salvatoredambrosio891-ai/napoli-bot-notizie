@@ -1,22 +1,64 @@
+Plugin aggiorna by 𝕯𝖊ⱥ𝖉𝖑𝐲 e Bonzino
 import { execSync } from 'child_process'
 
 let handler = async (m, { conn }) => {
   try {
     await conn.reply(m.chat, '*🔄 𝐂𝐨𝐧𝐭𝐫𝐨𝐥𝐥𝐨 𝐚𝐠𝐠𝐢𝐨𝐫𝐧𝐚𝐦𝐞𝐧𝐭𝐢...*', m)
 
-    const update = execSync('git fetch origin && git reset --hard origin/main && git pull', {
+    execSync('git fetch origin', { encoding: 'utf-8' })
+
+    const diffStat = execSync('git diff --stat HEAD origin/main', {
       encoding: 'utf-8'
     })
 
-    const updatedFiles = update
+    const diffStatus = execSync('git diff --name-status HEAD origin/main', {
+      encoding: 'utf-8'
+    })
+
+    const statMap = {}
+    diffStat
       .split('\n')
+      .map(line => line.trim())
       .filter(line => line.includes('|'))
-      .map(line => {
-        const [file, changes] = line.split('|').map(s => s.trim())
-        const ins = (changes.match(/\+/g) || []).length
-        const del = (changes.match(/-/g) || []).length
-        return `📄 ${file} (+${ins}/-${del})`
+      .forEach(line => {
+        const [file, changesRaw] = line.split('|').map(s => s.trim())
+        const plus = (changesRaw.match(/\+/g) || []).length
+        const minus = (changesRaw.match(/-/g) || []).length
+        statMap[file] = { plus, minus }
       })
+
+    const updatedFiles = diffStatus
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        const parts = line.split('\t')
+        const status = parts[0]
+        const oldPath = parts[1]
+        const newPath = parts[2]
+
+        if (status.startsWith('R')) {
+          const stats = statMap[newPath] || statMap[oldPath] || { plus: 0, minus: 0 }
+          return `🔁 ${oldPath} → ${newPath} (+${stats.plus}/-${stats.minus})`
+        }
+
+        if (status === 'A') {
+          const stats = statMap[oldPath] || { plus: 0, minus: 0 }
+          return `🟢 ${oldPath} (+${stats.plus}/-${stats.minus})`
+        }
+
+        if (status === 'D') {
+          const stats = statMap[oldPath] || { plus: 0, minus: 0 }
+          return `🔴 ${oldPath} (+${stats.plus}/-${stats.minus})`
+        }
+
+        const stats = statMap[oldPath] || { plus: 0, minus: 0 }
+        return `📄 ${oldPath} (+${stats.plus}/-${stats.minus})`
+      })
+
+    const update = execSync('git reset --hard origin/main && git pull', {
+      encoding: 'utf-8'
+    })
 
     let resultMsg = '*✅ 𝐀𝐠𝐠𝐢𝐨𝐫𝐧𝐚𝐦𝐞𝐧𝐭𝐨 𝐜𝐨𝐦𝐩𝐥𝐞𝐭𝐚𝐭𝐨!*'
 
