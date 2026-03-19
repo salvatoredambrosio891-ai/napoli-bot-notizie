@@ -29,7 +29,7 @@ const handler = async (message, { conn, usedPrefix = '.' }) => {
   ◈ *ᴄᴏᴍᴀɴᴅɪ:* ${totalCommands}
   ◈ *ᴘɪɴɢ:* ${ping} ᴍs
   ◈ *ᴅᴇᴠ:* _*Deadly & Staff*_
-  ◈ *ᴠᴇʀsɪᴏɴᴇ: 1.0
+  ◈ *ᴠᴇʀsɪᴏɴᴇ:* 1.0
   ◈ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓*
 ╼━━━━━━━━━━━━━━╾
 `.trim();
