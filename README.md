@@ -1,10 +1,10 @@
-# 🌀 𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓 🌀
+# 💙 𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓 💙
 > Un bot WhatsApp avanzato, veloce e multi-funzionale, progettato per l'efficienza e il divertimento.
 
 ---
 
 <div align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=00FFFF&center=true&vCenter=true&width=435&lines=𝛥𝐗𝐈𝚶𝐍+𝐒𝐘𝐒𝐓𝐄𝐌+𝐀𝐂𝐓𝐈𝐕𝐀𝐓𝐄𝐃;Powered+by+𝕯𝖊ⱥ𝖉𝖑𝐲;WhatsApp+Multi-Device+Bot" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=00FFFF&center=true&vCenter=true&width=435&lines=𝐍𝐀𝐏𝐎𝐋𝐈+𝐒𝐘𝐒𝐓𝐄𝐌+𝐀𝐂𝐓𝐈𝐕𝐀𝐓𝐄𝐃;Powered+by+Salvatore;WhatsApp+Multi-Device+Bot" alt="Typing SVG" />
 </div>
 
 ---
