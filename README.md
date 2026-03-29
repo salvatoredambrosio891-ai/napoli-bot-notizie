@@ -1,4 +1,4 @@
-# 💙 𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓 💙
+# 💙 𝐍𝐀𝐏𝐎𝐋𝐈 𝐁𝐎𝐓 𝐍𝐎𝐓𝐈𝐙𝐈𝐄  💙
 > Un bot WhatsApp avanzato, veloce e multi-funzionale, progettato per l'efficienza e il divertimento.
 
 ---
