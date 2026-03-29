@@ -33,13 +33,13 @@ Il progetto è curato e gestito da:
 Se desideri aggiungere **𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓** nel tuo gruppo o se sei interessato a riceverlo per installarlo sul tuo server:
 
 > ### 📢 Contatto Ufficiale
-> Per qualsiasi richiesta di installazione o aggiunta nei gruppi, è necessario **contattare direttamente 𝕯𝖊ⱥ𝖉𝖑𝐲**. 
+> Per qualsiasi richiesta di installazione o aggiunta nei gruppi, è necessario **contattare direttamente Salvatore**. 
 > Solo l'owner ufficiale può fornire l'accesso e i file necessari per la configurazione.
 
 ---
 
 ## ⚙️ Configurazione
-Una volta ottenuti i file da **𝕯𝖊ⱥ𝖉𝖑𝐲**, potrai personalizzare:
+Una volta ottenuti i file da **Salvatore**, potrai personalizzare:
 * **Numero Owner:** Inserisci il tuo numero per ottenere i permessi.
 * **Prefissi:** Personalizza il simbolo dei comandi (es: `.`, `!`, `/`,).
 
