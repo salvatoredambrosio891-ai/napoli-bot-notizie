@@ -49,12 +49,7 @@ Una volta ottenuti i file da **𝕯𝖊ⱥ𝖉𝖑𝐲**, potrai personalizzare:
 Se hai bisogno di assistenza o vuoi collaborare al progetto:
 
 * **Proprietario:** Salvatore
-* **Canale Ufficiale:** [https://whatsapp.com/channel/0029Vb8MQ3U1CYoMEtU1832d]
+* **Canale Ufficiale:** [https://whatsapp.com/channel/0029VbBVRIl9Gv7ZcEAhey2g]
 
 ---
 
-<div align="center">
-  <p>Prodotto con ❤️ dal team di 𝛥𝐗𝐈𝚶𝐍</p>
-  <img src="https://img.shields.io/badge/Status-Active-red?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Access-Public -brightgreen?style=for-the-badge" />
-</div>
