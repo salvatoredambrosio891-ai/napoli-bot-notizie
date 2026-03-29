@@ -14,7 +14,7 @@ Il progetto è curato e gestito da:
 
 | | Profilo | Ruolo |
 |---|---|---|
-| 👤 | **𝕯𝖊ⱥ𝖉𝖑𝐲** | Founder & Lead Developer |
+| 👤 | **Salvatore** | Founder & Lead Developer |
 | 🛡️ | **𝐒𝐭𝐚𝐟𝐟** | Supporto & Sicurezza |
 
 ---
@@ -30,7 +30,7 @@ Il progetto è curato e gestito da:
 
 ## 📥 Come ottenere il Bot
 
-Se desideri aggiungere **𝛥𝐗𝐈𝚶𝐍 𝚩𝚯𝐓** nel tuo gruppo o se sei interessato a riceverlo per installarlo sul tuo server:
+Se desideri aggiungere **𝐍𝐀𝐏𝐎𝐋𝐈-𝐁𝐎𝐓** nel tuo gruppo o se sei interessato a riceverlo per installarlo sul tuo server:
 
 > ### 📢 Contatto Ufficiale
 > Per qualsiasi richiesta di installazione o aggiunta nei gruppi, è necessario **contattare direttamente 𝕯𝖊ⱥ𝖉𝖑𝐲**. 
@@ -48,7 +48,7 @@ Una volta ottenuti i file da **𝕯𝖊ⱥ𝖉𝖑𝐲**, potrai personalizzare:
 ## 🤝 Contatti & Supporto
 Se hai bisogno di assistenza o vuoi collaborare al progetto:
 
-* **Proprietario:** 𝕯𝖊ⱥ𝖉𝖑𝐲
+* **Proprietario:** Salvatore
 * **Canale Ufficiale:** [https://whatsapp.com/channel/0029Vb8MQ3U1CYoMEtU1832d]
 
 ---
